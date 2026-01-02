@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quest Diagnostic: What Kind of Journey Are You On?</title>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ink: #1a1a1a;
+            --paper: #f9faf8;
+            --accent: #5a7a5a;
+            --accent-dark: #4a6a4a;
+            --accent-light: #e8efe8;
+            --accent-lighter: #f0f5f0;
+            --muted: #6b6b6b;
+            --border: #d4ddd4;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--paper);
+            color: var(--ink);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 3rem 1.5rem;
+        }
+
+        /* Header */
+        .quiz-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .quiz-header h1 {
+            font-family: 'Instrument Serif', serif;
+            font-size: clamp(2rem, 5vw, 2.75rem);
+            font-weight: 400;
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .quiz-header p {
+            color: var(--muted);
+            font-size: 1.05rem;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        /* Progress */
+        .progress-container {
+            margin-bottom: 2.5rem;
+        }
+
+        .progress-bar {
+            height: 3px;
+            background: var(--border);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            transition: width 0.4s ease;
+            width: 0%;
+        }
+
+        .progress-text {
+            text-align: right;
+            font-size: 0.85rem;
+            color: var(--muted);
+            margin-top: 0.5rem;
+        }
+
+        /* Questions */
+        .question-section {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .question-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .question-number {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--accent);
+            margin-bottom: 0.75rem;
+        }
+
+        .question-text {
+            font-family: 'Instrument Serif', serif;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            line-height: 1.4;
+        }
+
+        .question-instruction {
+            font-size: 0.9rem;
+            color: var(--muted);
+            margin-bottom: 1.5rem;
+            font-style: italic;
+        }
+
+        /* Options */
+        .options-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .option-item {
+            position: relative;
+        }
+
+        .option-item input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .option-label {
+            display: block;
+            padding: 1rem 1.25rem;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.95rem;
+        }
+
+        .option-label:hover {
+            border-color: var(--accent);
+            background: #fff;
+        }
+
+        .option-item input:checked + .option-label {
+            border-color: var(--accent);
+            background: var(--accent-light);
+        }
+
+        /* Multi-select indicator */
+        .option-label::before {
+            content: '';
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border);
+            border-radius: 4px;
+            margin-right: 12px;
+            vertical-align: middle;
+            transition: all 0.2s ease;
+        }
+
+        .option-item input:checked + .option-label::before {
+            background: var(--accent);
+            border-color: var(--accent);
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3E%3C/svg%3E");
+        }
+
+        /* Single select radio style */
+        .single-select .option-label::before {
+            border-radius: 50%;
+        }
+
+        .single-select .option-item input:checked + .option-label::before {
+            background-image: none;
+            box-shadow: inset 0 0 0 4px white;
+        }
+
+        /* Navigation */
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2.5rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .btn {
+            padding: 0.875rem 2rem;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 500;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-back {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--muted);
+        }
+
+        .btn-back:hover {
+            border-color: var(--ink);
+            color: var(--ink);
+        }
+
+        .btn-next {
+            background: var(--ink);
+            border: 1px solid var(--ink);
+            color: white;
+        }
+
+        .btn-next:hover {
+            background: #333;
+        }
+
+        .btn-next:disabled {
+            background: var(--border);
+            border-color: var(--border);
+            cursor: not-allowed;
+        }
+
+        .btn-hidden {
+            visibility: hidden;
+        }
+
+        /* Intro Section */
+        .intro-section {
+            text-align: center;
+            padding: 2rem 0;
+        }
+
+        .intro-section p {
+            margin-bottom: 1.25rem;
+            font-size: 1.05rem;
+        }
+
+        .intro-section .lead {
+            font-family: 'Instrument Serif', serif;
+            font-size: 1.35rem;
+            font-style: italic;
+            color: var(--ink);
+        }
+
+        .btn-start {
+            margin-top: 2rem;
+            padding: 1rem 3rem;
+            font-size: 1rem;
+        }
+
+        /* Results */
+        .results-section {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .results-section.active {
+            display: block;
+        }
+
+        .result-type {
+            text-align: center;
+            padding: 2.5rem;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+
+        .result-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--accent);
+            margin-bottom: 0.75rem;
+        }
+
+        .result-title {
+            font-family: 'Instrument Serif', serif;
+            font-size: 2.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .result-subtitle {
+            color: var(--muted);
+            font-size: 1.1rem;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        .result-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .result-card h3 {
+            font-family: 'Instrument Serif', serif;
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .result-card h3::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+        }
+
+        .result-card p {
+            color: var(--muted);
+            margin-bottom: 1rem;
+        }
+
+        .result-card p:last-child {
+            margin-bottom: 0;
+        }
+
+        .result-card ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .result-card li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+            color: var(--muted);
+        }
+
+        .result-card li::before {
+            content: '—';
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+        }
+
+        .closing-message {
+            text-align: center;
+            padding: 2rem;
+            background: var(--accent-light);
+            border-radius: 12px;
+            margin-top: 2rem;
+        }
+
+        .closing-message p {
+            font-family: 'Instrument Serif', serif;
+            font-size: 1.35rem;
+            font-style: italic;
+            margin-bottom: 1.5rem;
+        }
+
+        .closing-message .tagline {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1rem;
+            font-style: normal;
+            font-weight: 500;
+            color: var(--accent);
+        }
+
+        /* Scores visual */
+        .score-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .score-bar-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .score-bar-label {
+            width: 120px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .score-bar-track {
+            flex: 1;
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .score-bar-fill {
+            height: 100%;
+            background: var(--accent);
+            border-radius: 4px;
+            transition: width 0.6s ease;
+        }
+
+        .score-bar-value {
+            width: 40px;
+            text-align: right;
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+
+        /* Retake */
+        .btn-retake {
+            display: block;
+            margin: 2rem auto 0;
+            background: transparent;
+            border: 1px solid var(--ink);
+            color: var(--ink);
+        }
+
+        .btn-retake:hover {
+            background: var(--ink);
+            color: white;
+        }
+
+        /* Email capture for Formspree */
+        .email-capture {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-top: 2rem;
+            text-align: center;
+        }
+
+        .email-capture h3 {
+            font-family: 'Instrument Serif', serif;
+            font-size: 1.35rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .email-capture p {
+            color: var(--muted);
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+        }
+
+        .email-form {
+            display: flex;
+            gap: 0.75rem;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .email-form input[type="email"] {
+            flex: 1;
+            padding: 0.875rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+        }
+
+        .email-form input[type="email"]:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .email-form button {
+            padding: 0.875rem 1.5rem;
+            background: var(--accent);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .email-form button:hover {
+            background: var(--accent-dark);
+        }
+
+        /* Hidden form fields */
+        .hidden-field {
+            display: none;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 2rem 1rem;
+            }
+
+            .email-form {
+                flex-direction: column;
+            }
+
+            .nav-buttons {
+                flex-direction: column-reverse;
+                gap: 1rem;
+            }
+
+            .btn {
+                width: 100%;
+                text-align: center;
+            }
+
+            .btn-hidden {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="quiz-header">
+            <h1>What Kind of Journey Are You On?</h1>
+            <p>A diagnostic to help you understand whether you're pursuing a goal, embarking on a quest, or answering a deeper call.</p>
+        </header>
+
+        <!-- Intro -->
+        <div id="intro" class="intro-section question-section active">
+            <p>You have something you want to achieve. Maybe you've set goals, made plans, tried different approaches. Some worked. Some didn't.</p>
+            <p>But here's what most people miss: <strong>not all ambitious undertakings are the same.</strong></p>
+            <p>There's a structural difference between a goal you can plan and execute, a quest that will test and change you along the way, and a deeper call that will remake who you are entirely.</p>
+            <p>Each requires a different approach, different tools, different preparation. Using goal-setting tools on a quest is like bringing a day-pack to an expedition.</p>
+            <p class="lead">"Not all who wander are lost."</p>
+            <p>Let's find out what kind of journey you're actually on.</p>
+            <p style="font-size: 0.9rem; color: var(--muted); margin-top: 1.5rem;"><em>Think of something ambitious you want to accomplish. Hold it in mind as you answer these questions.</em></p>
+            <button class="btn btn-next btn-start" onclick="startQuiz()">Begin the Diagnostic</button>
+        </div>
+
+        <!-- Progress -->
+        <div class="progress-container" id="progress-container" style="display: none;">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <div class="progress-text"><span id="current-q">1</span> of <span id="total-q">14</span></div>
+        </div>
+
+        <!-- Question 1 -->
+        <div id="q1" class="question-section" data-question="1">
+            <div class="question-number">Question 1</div>
+            <div class="question-text">When you imagine the end point of this thing:</div>
+            <div class="question-instruction">Select all that apply</div>
+            <ul class="options-list">
+                <li class="option-item">
+                    <input type="checkbox" id="q1a" name="q1" value="goal" data-type="goal">
+                    <label class="option-label" for="q1a">I can describe exactly what "done" looks like—specific and measurable</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q1b" name="q1" value="quest" data-type="quest">
+                    <label class="option-label" for="q1b">I have a strong sense of direction, but the final form is still taking shape</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q1c" name="q1" value="hero" data-type="hero">
+                    <label class="option-label" for="q1c">The destination feels more like a feeling or state than a concrete outcome</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q1d" name="q1" value="hero" data-type="hero">
+                    <label class="option-label" for="q1d">I'll know it when I get there, but I struggle to articulate it now</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q1e" name="q1" value="quest" data-type="quest">
+                    <label class="option-label" for="q1e">It keeps evolving the more I think about it</label>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Question 2 -->
+        <div id="q2" class="question-section" data-question="2">
+            <div class="question-number">Question 2</div>
+            <div class="question-text">If you tried to map out the path from here to there:</div>
+            <div class="question-instruction">Select all that apply</div>
+            <ul class="options-list">
+                <li class="option-item">
+                    <input type="checkbox" id="q2a" name="q2" value="goal" data-type="goal">
+                    <label class="option-label" for="q2a">I could create a reasonable plan with milestones and timelines</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q2b" name="q2" value="quest" data-type="quest">
+                    <label class="option-label" for="q2b">I can see the first few steps clearly, then it gets foggy</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q2c" name="q2" value="hero" data-type="hero">
+                    <label class="option-label" for="q2c">I'd be guessing—the honest answer is I don't know the steps yet</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q2d" name="q2" value="quest" data-type="quest">
+                    <label class="option-label" for="q2d">The path seems to shift depending on factors I can't control</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q2e" name="q2" value="hero" data-type="hero">
+                    <label class="option-label" for="q2e">Part of the work is figuring out what the work even is</label>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Question 3 -->
+        <div id="q3" class="question-section" data-question="3">
+            <div class="question-number">Question 3</div>
+            <div class="question-text">What do you already know about the obstacles ahead?</div>
+            <div class="question-instruction">Select all that apply</div>
+            <ul class="options-list">
+                <li class="option-item">
+                    <input type="checkbox" id="q3a" name="q3" value="goal" data-type="goal">
+                    <label class="option-label" for="q3a">I can name the main challenges—they're fairly predictable</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q3b" name="q3" value="quest" data-type="quest">
+                    <label class="option-label" for="q3b">I know some obstacles, but I suspect there are others I can't see yet</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q3c" name="q3" value="quest" data-type="quest">
+                    <label class="option-label" for="q3c">I've hit walls before that I didn't anticipate at all</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q3d" name="q3" value="hero" data-type="hero">
+                    <label class="option-label" for="q3d">The external obstacles seem manageable; it's the internal ones I'm less sure about</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q3e" name="q3" value="hero" data-type="hero">
+                    <label class="option-label" for="q3e">It feels like an iceberg—what's visible is probably a fraction of what's there</label>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Question 4 -->
+        <div id="q4" class="question-section single-select" data-question="4">
+            <div class="question-number">Question 4</div>
+            <div class="question-text">When you think about who you need to be to accomplish this:</div>
+            <div class="question-instruction">Select one</div>
+            <ul class="options-list">
+                <li class="option-item">
+                    <input type="radio" id="q4a" name="q4" value="goal" data-type="goal">
+                    <label class="option-label" for="q4a">I'm basically the right person—I just need to do the work</label>
+                </li>
+                <li class="option-item">
+                    <input type="radio" id="q4b" name="q4" value="quest" data-type="quest">
+                    <label class="option-label" for="q4b">I'll need to grow, stretch, and build some new capabilities</label>
+                </li>
+                <li class="option-item">
+                    <input type="radio" id="q4c" name="q4" value="hero" data-type="hero">
+                    <label class="option-label" for="q4c">Some part of me senses I can't get there as who I currently am</label>
+                </li>
+                <li class="option-item">
+                    <input type="radio" id="q4d" name="q4" value="hero" data-type="hero">
+                    <label class="option-label" for="q4d">I think this will require me to let go of parts of who I've been</label>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Question 5 -->
+        <div id="q5" class="question-section" data-question="5">
+            <div class="question-number">Question 5</div>
+            <div class="question-text">What feels like the hardest part of this?</div>
+            <div class="question-instruction">Select up to three</div>
+            <ul class="options-list">
+                <li class="option-item">
+                    <input type="checkbox" id="q5a" name="q5" value="exec" data-type="execution">
+                    <label class="option-label" for="q5a">Staying consistent—showing up and doing the work day after day</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q5b" name="q5" value="exec" data-type="execution">
+                    <label class="option-label" for="q5b">Managing my time and energy across competing demands</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q5c" name="q5" value="nav" data-type="navigation">
+                    <label class="option-label" for="q5c">Figuring out what to actually do—the decision-making</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q5d" name="q5" value="nav" data-type="navigation">
+                    <label class="option-label" for="q5d">Dealing with uncertainty and ambiguity</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q5e" name="q5" value="trans" data-type="transformation">
+                    <label class="option-label" for="q5e">Staying motivated when progress is slow or invisible</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q5f" name="q5" value="trans" data-type="transformation">
+                    <label class="option-label" for="q5f">Handling the loneliness of it</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q5g" name="q5" value="trans" data-type="transformation">
+                    <label class="option-label" for="q5g">Trusting myself through the parts I can't plan for</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q5h" name="q5" value="nav" data-type="navigation">
+                    <label class="option-label" for="q5h">Not knowing if I'm on the right track</label>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Question 6 -->
+        <div id="q6" class="question-section" data-question="6">
+            <div class="question-number">Question 6</div>
+            <div class="question-text">When you've tried to make progress on this (or something like it) before, what happened?</div>
+            <div class="question-instruction">Select all that apply</div>
+            <ul class="options-list">
+                <li class="option-item">
+                    <input type="checkbox" id="q6a" name="q6" value="goal" data-type="goal">
+                    <label class="option-label" for="q6a">I made steady progress when I stayed disciplined</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q6b" name="q6" value="exec" data-type="execution">
+                    <label class="option-label" for="q6b">I started strong but lost momentum</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q6c" name="q6" value="quest" data-type="quest">
+                    <label class="option-label" for="q6c">I kept hitting unexpected walls that forced me to pivot</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q6d" name="q6" value="nav" data-type="navigation">
+                    <label class="option-label" for="q6d">I felt overwhelmed by how many decisions there were to make</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q6e" name="q6" value="trans" data-type="transformation">
+                    <label class="option-label" for="q6e">I got stuck in my head—doubt, perfectionism, second-guessing</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q6f" name="q6" value="goal" data-type="goal">
+                    <label class="option-label" for="q6f">External circumstances got in the way</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q6g" name="q6" value="quest" data-type="quest">
+                    <label class="option-label" for="q6g">I'm not sure why it stalled, honestly</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q6h" name="q6" value="hero" data-type="hero">
+                    <label class="option-label" for="q6h">I haven't really tried before—this is new territory</label>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Question 7 -->
+        <div id="q7" class="question-section" data-question="7">
+            <div class="question-number">Question 7</div>
+            <div class="question-text">What are you risking by going after this?</div>
+            <div class="question-instruction">Select all that apply</div>
+            <ul class="options-list">
+                <li class="option-item">
+                    <input type="checkbox" id="q7a" name="q7" value="goal" data-type="goal">
+                    <label class="option-label" for="q7a">Time and energy</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q7b" name="q7" value="goal" data-type="goal">
+                    <label class="option-label" for="q7b">Money or financial stability</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q7c" name="q7" value="quest" data-type="quest">
+                    <label class="option-label" for="q7c">Comfort and predictability</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q7d" name="q7" value="quest" data-type="quest">
+                    <label class="option-label" for="q7d">How others see me</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q7e" name="q7" value="hero" data-type="hero">
+                    <label class="option-label" for="q7e">A sense of who I've been</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q7f" name="q7" value="hero" data-type="hero">
+                    <label class="option-label" for="q7f">A relationship or relationships</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q7g" name="q7" value="quest" data-type="quest">
+                    <label class="option-label" for="q7g">My fallback options</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q7h" name="q7" value="hero" data-type="hero">
+                    <label class="option-label" for="q7h">Something I can't fully name yet</label>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Question 8 -->
+        <div id="q8" class="question-section single-select" data-question="8">
+            <div class="question-number">Question 8</div>
+            <div class="question-text">When you imagine the timeline for this:</div>
+            <div class="question-instruction">Select one</div>
+            <ul class="options-list">
+                <li class="option-item">
+                    <input type="radio" id="q8a" name="q8" value="goal" data-type="goal">
+                    <label class="option-label" for="q8a">Weeks to a few months—it has a clear end point</label>
+                </li>
+                <li class="option-item">
+                    <input type="radio" id="q8b" name="q8" value="goal" data-type="goal">
+                    <label class="option-label" for="q8b">Six months to a year, with distinct phases</label>
+                </li>
+                <li class="option-item">
+                    <input type="radio" id="q8c" name="q8" value="quest" data-type="quest">
+                    <label class="option-label" for="q8c">A year or more—it's a longer arc</label>
+                </li>
+                <li class="option-item">
+                    <input type="radio" id="q8d" name="q8" value="hero" data-type="hero">
+                    <label class="option-label" for="q8d">"However long it takes"—this isn't something I can put a deadline on</label>
+                </li>
+                <li class="option-item">
+                    <input type="radio" id="q8e" name="q8" value="quest" data-type="quest">
+                    <label class="option-label" for="q8e">I genuinely don't know—it depends on too many unknowns</label>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Question 9 -->
+        <div id="q9" class="question-section" data-question="9">
+            <div class="question-number">Question 9</div>
+            <div class="question-text">Why this? Why now?</div>
+            <div class="question-instruction">Select all that apply</div>
+            <ul class="options-list">
+                <li class="option-item">
+                    <input type="checkbox" id="q9a" name="q9" value="goal" data-type="goal">
+                    <label class="option-label" for="q9a">It's a logical next step in my life or career</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q9b" name="q9" value="quest" data-type="quest">
+                    <label class="option-label" for="q9b">I've been thinking about this for a while and the timing feels right</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q9c" name="q9" value="goal" data-type="goal">
+                    <label class="option-label" for="q9c">An opportunity appeared and I want to take it</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q9d" name="q9" value="hero" data-type="hero">
+                    <label class="option-label" for="q9d">Something shifted—a crisis, a realization, a door closing</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q9e" name="q9" value="hero" data-type="hero">
+                    <label class="option-label" for="q9e">It won't leave me alone—it feels like something I have to do</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q9f" name="q9" value="quest" data-type="quest">
+                    <label class="option-label" for="q9f">I'm not entirely sure, but something is pulling me toward it</label>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Question 10 -->
+        <div id="q10" class="question-section" data-question="10">
+            <div class="question-number">Question 10</div>
+            <div class="question-text">What kind of support do you think you'll need?</div>
+            <div class="question-instruction">Select all that apply</div>
+            <ul class="options-list">
+                <li class="option-item">
+                    <input type="checkbox" id="q10a" name="q10" value="exec" data-type="execution">
+                    <label class="option-label" for="q10a">Accountability—someone to keep me on track</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q10b" name="q10" value="exec" data-type="execution">
+                    <label class="option-label" for="q10b">A clear system or structure to follow</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q10c" name="q10" value="nav" data-type="navigation">
+                    <label class="option-label" for="q10c">Guidance from someone who's done something like this</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q10d" name="q10" value="goal" data-type="goal">
+                    <label class="option-label" for="q10d">Help with specific skills or knowledge gaps</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q10e" name="q10" value="nav" data-type="navigation">
+                    <label class="option-label" for="q10e">Someone to think through decisions with</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q10f" name="q10" value="trans" data-type="transformation">
+                    <label class="option-label" for="q10f">A space to process the emotional side of this</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q10g" name="q10" value="trans" data-type="transformation">
+                    <label class="option-label" for="q10g">People who won't let me hide from myself</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q10h" name="q10" value="quest" data-type="quest">
+                    <label class="option-label" for="q10h">I'm not sure yet—I might not know until I'm in it</label>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Question 11 -->
+        <div id="q11" class="question-section" data-question="11">
+            <div class="question-number">Question 11</div>
+            <div class="question-text">When you imagine yourself struggling with this, what does that look like?</div>
+            <div class="question-instruction">Select up to three</div>
+            <ul class="options-list">
+                <li class="option-item">
+                    <input type="checkbox" id="q11a" name="q11" value="exec" data-type="execution">
+                    <label class="option-label" for="q11a">Procrastinating, avoiding, not doing the thing I said I'd do</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q11b" name="q11" value="exec" data-type="execution">
+                    <label class="option-label" for="q11b">Getting distracted, scattered, losing focus</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q11c" name="q11" value="nav" data-type="navigation">
+                    <label class="option-label" for="q11c">Working hard but on the wrong things</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q11d" name="q11" value="nav" data-type="navigation">
+                    <label class="option-label" for="q11d">Overthinking, researching endlessly, not acting</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q11e" name="q11" value="nav" data-type="navigation">
+                    <label class="option-label" for="q11e">Feeling paralyzed by too many options</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q11f" name="q11" value="trans" data-type="transformation">
+                    <label class="option-label" for="q11f">Doubting whether I'm capable of this</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q11g" name="q11" value="trans" data-type="transformation">
+                    <label class="option-label" for="q11g">Doubting whether this is even the right thing to pursue</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q11h" name="q11" value="trans" data-type="transformation">
+                    <label class="option-label" for="q11h">Losing hope when results don't come</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q11i" name="q11" value="trans" data-type="transformation">
+                    <label class="option-label" for="q11i">Telling myself stories about why it won't work</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q11j" name="q11" value="trans" data-type="transformation">
+                    <label class="option-label" for="q11j">Hiding from feedback or outside perspectives</label>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Question 12 -->
+        <div id="q12" class="question-section single-select" data-question="12">
+            <div class="question-number">Question 12</div>
+            <div class="question-text">Which of these feels more true?</div>
+            <div class="question-instruction">Select one</div>
+            <ul class="options-list">
+                <li class="option-item">
+                    <input type="radio" id="q12a" name="q12" value="exec" data-type="execution">
+                    <label class="option-label" for="q12a">I mostly know what to do—I struggle to make myself do it</label>
+                </li>
+                <li class="option-item">
+                    <input type="radio" id="q12b" name="q12" value="nav" data-type="navigation">
+                    <label class="option-label" for="q12b">I could probably force myself to do the work—I'm less sure I'm working on the right things</label>
+                </li>
+                <li class="option-item">
+                    <input type="radio" id="q12c" name="q12" value="both" data-type="both">
+                    <label class="option-label" for="q12c">Both feel true, depending on the day</label>
+                </li>
+                <li class="option-item">
+                    <input type="radio" id="q12d" name="q12" value="neither" data-type="neither">
+                    <label class="option-label" for="q12d">Neither—my struggle is something else</label>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Question 13 -->
+        <div id="q13" class="question-section" data-question="13">
+            <div class="question-number">Question 13</div>
+            <div class="question-text">When things get hard, what tends to happen inside you?</div>
+            <div class="question-instruction">Select all that apply</div>
+            <ul class="options-list">
+                <li class="option-item">
+                    <input type="checkbox" id="q13a" name="q13" value="trans" data-type="transformation">
+                    <label class="option-label" for="q13a">I get critical of myself—"I should be further along"</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q13b" name="q13" value="trans" data-type="transformation">
+                    <label class="option-label" for="q13b">I start questioning the whole endeavor</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q13c" name="q13" value="trans" data-type="transformation">
+                    <label class="option-label" for="q13c">I compare myself to others and come up short</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q13d" name="q13" value="trans" data-type="transformation">
+                    <label class="option-label" for="q13d">I feel alone, like no one understands what I'm trying to do</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q13e" name="q13" value="trans" data-type="transformation">
+                    <label class="option-label" for="q13e">I lose access to why this mattered in the first place</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q13f" name="q13" value="trans" data-type="transformation">
+                    <label class="option-label" for="q13f">I lower my expectations to protect myself from disappointment</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q13g" name="q13" value="exec" data-type="execution">
+                    <label class="option-label" for="q13g">I get busy with other things—productive avoidance</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q13h" name="q13" value="trans" data-type="transformation">
+                    <label class="option-label" for="q13h">I shut down and go quiet</label>
+                </li>
+                <li class="option-item">
+                    <input type="checkbox" id="q13i" name="q13" value="exec" data-type="execution">
+                    <label class="option-label" for="q13i">I push harder, even when it's not working</label>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Question 14 -->
+        <div id="q14" class="question-section single-select" data-question="14">
+            <div class="question-number">Question 14</div>
+            <div class="question-text">Which of these statements resonates most?</div>
+            <div class="question-instruction">Select one</div>
+            <ul class="options-list">
+                <li class="option-item">
+                    <input type="radio" id="q14a" name="q14" value="exec" data-type="execution">
+                    <label class="option-label" for="q14a">My challenge is mostly about doing—execution, habits, discipline</label>
+                </li>
+                <li class="option-item">
+                    <input type="radio" id="q14b" name="q14" value="nav" data-type="navigation">
+                    <label class="option-label" for="q14b">My challenge is mostly about navigating—decisions, direction, uncertainty</label>
+                </li>
+                <li class="option-item">
+                    <input type="radio" id="q14c" name="q14" value="trans" data-type="transformation">
+                    <label class="option-label" for="q14c">My challenge is mostly about becoming—beliefs, identity, inner work</label>
+                </li>
+                <li class="option-item">
+                    <input type="radio" id="q14d" name="q14" value="all" data-type="all">
+                    <label class="option-label" for="q14d">It's all three, honestly</label>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Navigation buttons (will be shown/hidden per question) -->
+        <div class="nav-buttons" id="nav-buttons" style="display: none;">
+            <button class="btn btn-back" id="btn-back" onclick="prevQuestion()">Back</button>
+            <button class="btn btn-next" id="btn-next" onclick="nextQuestion()">Continue</button>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results" class="results-section">
+            <div class="result-type">
+                <div class="result-label">Your Journey Type</div>
+                <h2 class="result-title" id="result-title">You're On a Quest</h2>
+                <p class="result-subtitle" id="result-subtitle">What you're undertaking has the structure of a quest, not a goal.</p>
+            </div>
+
+            <div class="result-card">
+                <h3>What This Means</h3>
+                <p id="result-meaning">Loading...</p>
+            </div>
+
+            <div class="result-card">
+                <h3>Your Scores</h3>
+                <div class="score-bars">
+                    <div class="score-bar-item">
+                        <span class="score-bar-label">Goal</span>
+                        <div class="score-bar-track">
+                            <div class="score-bar-fill" id="goal-bar" style="width: 0%"></div>
+                        </div>
+                        <span class="score-bar-value" id="goal-percent">0%</span>
+                    </div>
+                    <div class="score-bar-item">
+                        <span class="score-bar-label">Quest</span>
+                        <div class="score-bar-track">
+                            <div class="score-bar-fill" id="quest-bar" style="width: 0%"></div>
+                        </div>
+                        <span class="score-bar-value" id="quest-percent">0%</span>
+                    </div>
+                    <div class="score-bar-item">
+                        <span class="score-bar-label">Hero's Journey</span>
+                        <div class="score-bar-track">
+                            <div class="score-bar-fill" id="hero-bar" style="width: 0%"></div>
+                        </div>
+                        <span class="score-bar-value" id="hero-percent">0%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result-card">
+                <h3>Where Your Struggle Lives</h3>
+                <p id="struggle-intro">Based on your answers:</p>
+                <div class="score-bars">
+                    <div class="score-bar-item">
+                        <span class="score-bar-label">Execution</span>
+                        <div class="score-bar-track">
+                            <div class="score-bar-fill" id="exec-bar" style="width: 0%"></div>
+                        </div>
+                        <span class="score-bar-value" id="exec-percent">0%</span>
+                    </div>
+                    <div class="score-bar-item">
+                        <span class="score-bar-label">Navigation</span>
+                        <div class="score-bar-track">
+                            <div class="score-bar-fill" id="nav-bar" style="width: 0%"></div>
+                        </div>
+                        <span class="score-bar-value" id="nav-percent">0%</span>
+                    </div>
+                    <div class="score-bar-item">
+                        <span class="score-bar-label">Transformation</span>
+                        <div class="score-bar-track">
+                            <div class="score-bar-fill" id="trans-bar" style="width: 0%"></div>
+                        </div>
+                        <span class="score-bar-value" id="trans-percent">0%</span>
+                    </div>
+                </div>
+                <p id="struggle-meaning" style="margin-top: 1rem;">Loading...</p>
+            </div>
+
+            <div class="result-card">
+                <h3>What This Means for You</h3>
+                <p id="result-implications">Loading...</p>
+            </div>
+
+            <div class="closing-message">
+                <p id="closing-text">"You're not failing. You're just on a quest."</p>
+                <div class="tagline">Now you know. Let's get to work.</div>
+            </div>
+
+            <!-- Email capture for Formspree -->
+            <div class="email-capture">
+                <h3>This is just the beginning</h3>
+                <p>I'm developing a program specifically designed for people on quests—not another goal-setting course, but real preparation for the journey ahead.</p>
+                <p style="font-size: 0.9rem; color: var(--muted);">Join the early interest list to be the first to know when it opens, and to help shape what it becomes.</p>
+                <form class="email-form" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
+                    <input type="email" name="email" placeholder="Your email" required>
+                    <input type="hidden" name="journey_type" id="form-journey-type">
+                    <input type="hidden" name="goal_score" id="form-goal-score">
+                    <input type="hidden" name="quest_score" id="form-quest-score">
+                    <input type="hidden" name="hero_score" id="form-hero-score">
+                    <input type="hidden" name="execution_score" id="form-exec-score">
+                    <input type="hidden" name="navigation_score" id="form-nav-score">
+                    <input type="hidden" name="transformation_score" id="form-trans-score">
+                    <button type="submit">Count Me In</button>
+                </form>
+            </div>
+
+            <button class="btn btn-retake" onclick="retakeQuiz()">Retake the Diagnostic</button>
+        </div>
+    </div>
+
+    <script>
+        // Quiz state
+        let currentQuestion = 0;
+        const totalQuestions = 14;
+        
+        // Scoring
+        let scores = {
+            goal: 0,
+            quest: 0,
+            hero: 0,
+            execution: 0,
+            navigation: 0,
+            transformation: 0
+        };
+
+        // Results content
+        const journeyResults = {
+            goal: {
+                title: "This Looks Like a Goal",
+                subtitle: "What you're pursuing has the structure of a goal or project—clear, achievable, and plannable.",
+                meaning: "A goal is a specific outcome you can define, measure, and achieve with the right effort and discipline. The path is largely visible, the obstacles are knowable, and you're essentially the right person to do this—you just need to execute. This isn't a lesser category; many meaningful things are goals. The key is matching your approach to the reality of what you're facing.",
+                implications: "You can use traditional project management and goal-setting tools here. Break it down, set milestones, find accountability, and execute. The main risk is inconsistency—not showing up. A coach, system, or structure can help you stay on track. You don't need to reinvent yourself to achieve this. You need to do the work.",
+                closing: "The path is clear. Now walk it."
+            },
+            quest: {
+                title: "You're On a Quest",
+                subtitle: "What you're undertaking has the structure of a quest—a longer journey through uncertain territory.",
+                meaning: "A quest contains many goals, but it's more than any single goal. The destination may be somewhat clear, but the path is not. You'll encounter obstacles you can't predict, and some of them will require you to grow and adapt. The map you make today will need to be redrawn. Part of the work is figuring out what the work even is.",
+                implications: "Traditional goal-setting tools will help, but they're not enough. You need ways to navigate uncertainty, make decisions with incomplete information, and stay connected to why this matters when the path gets murky. The overwhelm and decision fatigue you've felt aren't signs of failure—they're signs you've been using the wrong tools. You need a compass more than a GPS.",
+                closing: "You're not failing. You're on a quest."
+            },
+            hero: {
+                title: "You're Answering a Deeper Call",
+                subtitle: "What you're pursuing has the structure of a hero's journey—a transformational passage that will remake you.",
+                meaning: "This isn't just about getting somewhere or even about the journey. It's about who you'll become. Something is calling you that won't let go, and you sense—even if you can't fully articulate it—that you can't get there as who you currently are. Parts of your old self may need to fall away. This is the territory of crisis, calling, and fundamental change.",
+                implications: "This journey will break you open, and that's not a bug—it's a feature. The obstacles aren't just things to overcome; they're the very mechanisms of your transformation. You'll need allies who can see you clearly, who won't let you hide from yourself, and who can hold space for the parts of this that feel like dying. Productivity tools won't help much here. Presence, support, and courage will.",
+                closing: "The call is real. Answer it."
+            },
+            mixed: {
+                title: "Your Journey Has Multiple Layers",
+                subtitle: "What you're pursuing has elements of both quest and deeper transformation.",
+                meaning: "Your scores suggest this isn't a simple goal, but something more complex—part quest, part hero's journey. This is common for significant life undertakings. There's a practical journey (the quest) and an inner journey (the transformation) happening simultaneously. They're intertwined, and progress on one often requires progress on the other.",
+                implications: "You'll need to work on multiple levels: the practical decisions and navigation of the outer journey, and the beliefs, identity, and inner work of the transformation. Neither can be skipped. The good news is that working on one tends to unlock the other. The challenge is knowing which one needs attention at any given moment.",
+                closing: "The journey is the destination."
+            }
+        };
+
+        const struggleResults = {
+            execution: {
+                intro: "Your primary struggle appears to be around execution.",
+                meaning: "You often know what to do—the challenge is making yourself do it. Focus, discipline, momentum, and consistency are where you get stuck. This is about habits, energy management, and accountability."
+            },
+            navigation: {
+                intro: "Your primary struggle appears to be around navigation.",
+                meaning: "You could probably force yourself to work—but you're less sure you're working on the right things. Decision fatigue, uncertainty, and the question of 'what should I actually do?' are where you get stuck. This is about clarity, direction, and wayfinding."
+            },
+            transformation: {
+                intro: "Your primary struggle appears to be around inner work.",
+                meaning: "The external challenges may be real, but the deeper friction is internal—beliefs, self-doubt, identity, hope. This is about who you're becoming and what you're willing to let go of."
+            },
+            mixed: {
+                intro: "Your struggle spans multiple dimensions.",
+                meaning: "You're navigating challenges in execution, direction, and inner work simultaneously. This is typical of quests—the layers compound. You'll need approaches that address all three, knowing that progress in one area often unlocks the others."
+            }
+        };
+
+        function startQuiz() {
+            document.getElementById('intro').classList.remove('active');
+            document.getElementById('progress-container').style.display = 'block';
+            document.getElementById('nav-buttons').style.display = 'flex';
+            showQuestion(1);
+        }
+
+        function showQuestion(num) {
+            // Hide all questions
+            document.querySelectorAll('.question-section').forEach(q => {
+                q.classList.remove('active');
+            });
+            
+            // Show current question
+            const questionEl = document.getElementById('q' + num);
+            if (questionEl) {
+                questionEl.classList.add('active');
+            }
+            
+            currentQuestion = num;
+            updateProgress();
+            updateNavButtons();
+        }
+
+        function updateProgress() {
+            const percent = (currentQuestion / totalQuestions) * 100;
+            document.getElementById('progress-fill').style.width = percent + '%';
+            document.getElementById('current-q').textContent = currentQuestion;
+        }
+
+        function updateNavButtons() {
+            const backBtn = document.getElementById('btn-back');
+            const nextBtn = document.getElementById('btn-next');
+            
+            // Show/hide back button
+            if (currentQuestion <= 1) {
+                backBtn.classList.add('btn-hidden');
+            } else {
+                backBtn.classList.remove('btn-hidden');
+            }
+            
+            // Update next button text
+            if (currentQuestion >= totalQuestions) {
+                nextBtn.textContent = 'See My Results';
+            } else {
+                nextBtn.textContent = 'Continue';
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestion >= totalQuestions) {
+                calculateResults();
+                showResults();
+            } else {
+                showQuestion(currentQuestion + 1);
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestion > 1) {
+                showQuestion(currentQuestion - 1);
+            }
+        }
+
+        function calculateResults() {
+            // Reset scores
+            scores = {
+                goal: 0,
+                quest: 0,
+                hero: 0,
+                execution: 0,
+                navigation: 0,
+                transformation: 0
+            };
+
+            // Count all checked inputs
+            document.querySelectorAll('.question-section input:checked').forEach(input => {
+                const type = input.dataset.type;
+                if (type === 'goal') scores.goal++;
+                if (type === 'quest') scores.quest++;
+                if (type === 'hero') scores.hero++;
+                if (type === 'execution') scores.execution++;
+                if (type === 'navigation') scores.navigation++;
+                if (type === 'transformation') scores.transformation++;
+            });
+        }
+
+        function showResults() {
+            // Hide quiz elements
+            document.querySelectorAll('.question-section').forEach(q => {
+                q.classList.remove('active');
+            });
+            document.getElementById('progress-container').style.display = 'none';
+            document.getElementById('nav-buttons').style.display = 'none';
+
+            // Calculate percentages for journey type
+            const journeyTotal = scores.goal + scores.quest + scores.hero;
+            const goalPercent = journeyTotal > 0 ? Math.round((scores.goal / journeyTotal) * 100) : 0;
+            const questPercent = journeyTotal > 0 ? Math.round((scores.quest / journeyTotal) * 100) : 0;
+            const heroPercent = journeyTotal > 0 ? Math.round((scores.hero / journeyTotal) * 100) : 0;
+
+            // Calculate percentages for struggle type
+            const struggleTotal = scores.execution + scores.navigation + scores.transformation;
+            const execPercent = struggleTotal > 0 ? Math.round((scores.execution / struggleTotal) * 100) : 0;
+            const navPercent = struggleTotal > 0 ? Math.round((scores.navigation / struggleTotal) * 100) : 0;
+            const transPercent = struggleTotal > 0 ? Math.round((scores.transformation / struggleTotal) * 100) : 0;
+
+            // Determine primary journey type
+            let journeyType = 'quest'; // default
+            if (scores.goal > scores.quest && scores.goal > scores.hero) {
+                journeyType = 'goal';
+            } else if (scores.hero > scores.goal && scores.hero >= scores.quest) {
+                journeyType = 'hero';
+            } else if (scores.quest >= scores.goal && scores.quest >= scores.hero) {
+                journeyType = 'quest';
+            }
+            
+            // Check for mixed results
+            const maxJourney = Math.max(scores.goal, scores.quest, scores.hero);
+            const journeyScores = [scores.goal, scores.quest, scores.hero].filter(s => s >= maxJourney * 0.7);
+            if (journeyScores.length > 1 && journeyType !== 'goal') {
+                journeyType = 'mixed';
+            }
+
+            // Determine primary struggle type
+            let struggleType = 'mixed'; // default
+            if (scores.execution > scores.navigation && scores.execution > scores.transformation) {
+                struggleType = 'execution';
+            } else if (scores.navigation > scores.execution && scores.navigation > scores.transformation) {
+                struggleType = 'navigation';
+            } else if (scores.transformation > scores.execution && scores.transformation > scores.navigation) {
+                struggleType = 'transformation';
+            }
+
+            // Update UI with results
+            const result = journeyResults[journeyType];
+            const struggle = struggleResults[struggleType];
+
+            document.getElementById('result-title').textContent = result.title;
+            document.getElementById('result-subtitle').textContent = result.subtitle;
+            document.getElementById('result-meaning').textContent = result.meaning;
+            document.getElementById('result-implications').textContent = result.implications;
+            document.getElementById('closing-text').textContent = '"' + result.closing + '"';
+
+            document.getElementById('struggle-intro').textContent = struggle.intro;
+            document.getElementById('struggle-meaning').textContent = struggle.meaning;
+
+            // Update score bars (with slight delay for animation)
+            setTimeout(() => {
+                document.getElementById('goal-bar').style.width = goalPercent + '%';
+                document.getElementById('quest-bar').style.width = questPercent + '%';
+                document.getElementById('hero-bar').style.width = heroPercent + '%';
+                document.getElementById('exec-bar').style.width = execPercent + '%';
+                document.getElementById('nav-bar').style.width = navPercent + '%';
+                document.getElementById('trans-bar').style.width = transPercent + '%';
+            }, 100);
+
+            document.getElementById('goal-percent').textContent = goalPercent + '%';
+            document.getElementById('quest-percent').textContent = questPercent + '%';
+            document.getElementById('hero-percent').textContent = heroPercent + '%';
+            document.getElementById('exec-percent').textContent = execPercent + '%';
+            document.getElementById('nav-percent').textContent = navPercent + '%';
+            document.getElementById('trans-percent').textContent = transPercent + '%';
+
+            // Update hidden form fields for Formspree
+            document.getElementById('form-journey-type').value = journeyType;
+            document.getElementById('form-goal-score').value = goalPercent;
+            document.getElementById('form-quest-score').value = questPercent;
+            document.getElementById('form-hero-score').value = heroPercent;
+            document.getElementById('form-exec-score').value = execPercent;
+            document.getElementById('form-nav-score').value = navPercent;
+            document.getElementById('form-trans-score').value = transPercent;
+
+            // Show results section
+            document.getElementById('results').classList.add('active');
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function retakeQuiz() {
+            // Reset all inputs
+            document.querySelectorAll('.question-section input').forEach(input => {
+                input.checked = false;
+            });
+
+            // Reset scores
+            scores = {
+                goal: 0,
+                quest: 0,
+                hero: 0,
+                execution: 0,
+                navigation: 0,
+                transformation: 0
+            };
+
+            // Hide results
+            document.getElementById('results').classList.remove('active');
+
+            // Show intro
+            document.getElementById('intro').classList.add('active');
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Limit multi-select to 3 for specific questions
+        document.querySelectorAll('#q5 input, #q11 input').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const parent = this.closest('.question-section');
+                const checked = parent.querySelectorAll('input:checked');
+                if (checked.length > 3) {
+                    this.checked = false;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
